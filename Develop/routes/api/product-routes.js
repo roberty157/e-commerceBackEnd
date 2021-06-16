@@ -4,7 +4,7 @@ const { Product, Category, Tag, ProductTag } = require('../../models');
 // The `/api/products` endpoint
 
 // get all products
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   // find all products
   // be sure to include its associated Category and Tag data
   try {
@@ -18,16 +18,16 @@ router.get('/', (req, res) => {
 });
 
 // get one product
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
   // find a single product by its `id`
   // be sure to include its associated Category and Tag data
   try {
-    const ProductData = await Category.findByPk(req.params.id, {
-      include: [{ model: Category ,Tag}],
+    const ProductData = await Product.findByPk(req.params.id, {
+      include: [{ model: Category,Tag}],
     });
 
     if (!ProductData) {
-      res.status(404).json({ message: 'product found with that id!' });
+      res.status(404).json({ message: 'no product found with that id!' });
       return;
     }
 
@@ -47,13 +47,11 @@ router.post('/', (req, res) => {
       tagIds: [1, 2, 3, 4]
     }
   */
-  Product.create(req.body)
-
-    await User.create({ 
-      product_name: req.body.product_name, 
-      price: req.body.price,
-      stock: req.body.stock,
-      tagIds: req.body.tagIds, })
+  Product.create({
+    product_name: req.body.product_name, 
+    price: req.body.price,
+    stock: req.body.stock,
+    })
     .then((product) => {
       // if there's product tags, we need to create pairings to bulk create in the ProductTag model
       if (req.body.tagIds.length) {
@@ -119,6 +117,16 @@ router.put('/:id', (req, res) => {
 
 router.delete('/:id', (req, res) => {
   // delete one product by its `id` value
+  Product.destroy({
+    where: {
+      id: req.params.id,
+    },
+  })
+    .then((deletedProduct) => {
+      res.json(deletedProduct);
+    })
+    .catch((err) => res.json(err));
+
 });
 
 module.exports = router;
